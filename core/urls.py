@@ -10,10 +10,12 @@ from .views import (
     TopicListView,
     UnitListView,
     health_check,
+    admin_login_api,  # <-- Import admin login API view
 )
 
 urlpatterns = [
     path("health/", health_check, name="health"),
+    path("admin/login/", admin_login_api, name="admin-login-api"),  # <-- Added route here
     path("courses", CourseListView.as_view(), name="course-list"),
     path(
         "courses/<int:course_id>/curricula",

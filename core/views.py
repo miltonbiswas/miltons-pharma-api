@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.contrib.auth import authenticate
 
 from rest_framework import generics
 from rest_framework.generics import RetrieveAPIView
@@ -7,6 +8,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authtoken.models import Token
 
 from .authentication import SupabaseTokenAuthentication
 from .models import Course, Curriculum, Semester, Subject, Topic, Unit
@@ -20,6 +23,25 @@ from .serializers import (
     UnitSerializer,
 )
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def admin_login_api(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    user = authenticate(username=username, password=password)
+    
+    if user is not None and user.is_staff:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'ok': True,
+            'token': token.key,
+            'email': user.email,
+            'role': 'admin'
+        })
+    return Response({
+        'error': 'Invalid credentials or insufficient permissions'
+    }, status=400)
 
 @require_GET
 def health_check(request):
